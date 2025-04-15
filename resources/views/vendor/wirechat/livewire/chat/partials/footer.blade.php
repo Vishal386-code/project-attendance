@@ -1,7 +1,9 @@
 @use('Namu\WireChat\Helpers\Helper')
 
 <footer class="shrink-0 h-auto relative   sticky bottom-0 mt-auto">
-
+        @php
+            $group = $conversation->group;
+        @endphp
     {{-- Check if group allows :sending messages --}}
     @if ($conversation->isGroup() && !$conversation->group?->allowsMembersToSendMessages() && !$authParticipant->isAdmin())
         <div
@@ -24,12 +26,12 @@
             </section>
             {{-- form and detail section  --}}
             <section
-                class=" py-2 sm:px-4 py-1.5    z-50  bg-gray-50 dark:bg-gray-800   flex flex-col gap-3 items-center  w-full mx-auto">
+                class=" py-2 sm:px-4 z-50  bg-gray-50 dark:bg-gray-800   flex flex-col gap-3 items-center  w-full mx-auto">
 
                 {{-- Media preview section --}}
+                
                 <section x-show="$wire.media.length>0 ||$wire.files.length>0" x-cloak
                     class="  flex flex-col w-full gap-3" wire:loading.class="animate-pulse" wire:target="sendMessage">
-
 
 
                     @if (count($media) > 0)
@@ -115,6 +117,7 @@
                         </div>
 
                     @endif
+                
                     {{-- ----------------------- --}}
                     {{-- Files preview section --}}
                     @if (count($files) > 0)
@@ -184,8 +187,8 @@
 
                         </section>
                     @endif
+                    
                 </section>
-
 
                 {{-- Replying to --}}
                 @if ($replyMessage != null)
@@ -264,11 +267,9 @@
 
 
                     {{-- Emoji Triggger icon --}}
-                    @php
-                        $group = $conversation->group;
-                    @endphp
+                    
                     @if($group?->schema === "techno")
-                    {{ $group?->schema }}
+                    <!-- {{ $group?->name }} -->
                         <!--Not show emji select option in group-->
                     @else
                     <div class="w-10 hidden sm:flex max-w-fit  items-center">
@@ -287,10 +288,11 @@
                             </svg>
                         </button>
                     </div>
-                    @endif
+                    
 
                     {{-- Show  upload pop if media or file are empty --}}
                     {{-- Also only show  upload popup if allowed in configuration  --}}
+
                     @if (count($this->media) == 0 &&
                             count($this->files) == 0 &&
                             (config('wirechat.allow_file_attachments', true) || config('wirechat.allow_media_attachments', true)))
@@ -395,101 +397,83 @@
                             </div>
                         </x-wirechat::popover>
                     @endif
+                    @endif
 
                     {{-- --------------- --}}
                     {{-- TextArea Input --}}
                     {{-- --------------- --}}
 
-                    <div @class(['flex gap-2 sm:px-2 w-full'])>
-                        @if($group?->schema === "techno")
-                            <!-- Group Chat Custom Input -->
-                            <div class="flex flex-col w-full" x-data="{ showExtra: false }">
-                                <select x-model="body" 
-                                        class="w-full mb-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                                        @change="showExtra = ($event.target.value !== '')">
-                                    <option value="">Select a message</option>
-                                    <option value="Good Morning Sir">Good Morning Sir</option>
-                                    <option value="Good Afternoon Sir">Good Afternoon Sir</option>
-                                    <option value="Good Evening Sir">Good Evening Sir</option>
-                                </select>
+                        <div @class(['flex gap-2 sm:px-2 w-full'])>
+                            @if($group?->schema === "techno")
+                                <!-- Group Chat Custom Input -->
+                                <div class="flex flex-col w-full" x-data="{ showExtra: false, body: '' }">
+                                    <select x-model="body" id="messageSelect"
+                                            class="w-full cursor-pointer mb-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                                            @change="showExtra = ($event.target.value !== '')"
+                                            wire:model="body"> <!-- Add wire:model here -->
+                                        <option value="">Select a message</option>
+                                        <option value="Good Morning Sir">Good Morning Sir</option>
+                                        <option value="Good Afternoon Sir">Good Afternoon Sir</option>
+                                        <option value="Good Evening Sir">Good Evening Sir</option>
+                                    </select>
 
-                                <div x-show="showExtra" class="flex flex-col gap-2">
-                                    <div class="flex gap-2">
-                                        <select wire:model="includeOption" 
-                                                class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                            <option value="in">Include</option>
-                                            <option value="less">Less</option>
-                                        </select>
-                                        
-                                        <select wire:model="timeUnit" 
-                                                class="flex-1 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                            <option value="minutes">Minutes</option>
-                                            <option value="hours">Hours</option>
-                                        </select>
+                                    <div x-show="showExtra" id="extraFields" class="flex flex-col gap-2">
+                                        <div class="flex gap-2">
+                                            <div class='flex w-full items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white'>
+                                                <select wire:model="includeOption" id="includeOption"
+                                                        class="flex-1 cursor-pointer border-0 border-r border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                                                    <option>Select in/less</option>
+                                                    <option value="in">Include</option>
+                                                    <option value="less">Less</option>
+                                                </select>
+                                                <input type="number" id="timeValue" placeholder="Minutes/Hours" class='border-0 bg-transparent w-full h-full outline-none'>
+                                                <select wire:model="timeUnit" id="timeUnit" <!-- Fix wire:model here -->
+                                                        class="flex-1 cursor-pointer border-0 border-l border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                                                    <option>Select min/hours</option>
+                                                    <option value="min">Minute</option>
+                                                    <option value="hours">Hours</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <input type="text" wire:model="reason" 
+                                            placeholder="Reason" id="reason"
+                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                     </div>
-
-                                    <input type="text" wire:model="reason" 
-                                        placeholder="Reason" 
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                 </div>
-
-                                <button class="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                                        @click="window.Swal.fire({
-                                            title: 'Confirm Message',
-                                            html: `
-                                                Message: ${body}<br>
-                                                Include Option: ${includeOption}<br>
-                                                Time Unit: ${timeUnit}<br>
-                                                Reason: ${reason}
-                                            `,
-                                            icon: 'info',
-                                            showCancelButton: true,
-                                            confirmButtonText: 'Send',
-                                            cancelButtonText: 'Cancel'
-                                        }).then((result) => {
-                                            if (result.isConfirmed) {
-                                                $wire.sendMessage().then(() => {
-                                                    window.Swal.fire('Sent!', 'Your message has been sent.', 'success');
-                                                });
-                                            }
-                                        })">
-                                    Send Message
-                                </button>
-                            </div>
-                        @else
-                            <!-- Default Individual Chat Input -->
-                            <textarea @focus-input-field.window="$el.focus()" 
-                                    autocomplete="off" 
-                                    x-model='body' 
-                                    x-ref="body"
-                                    wire:loading.delay.longest.attr="disabled" 
-                                    wire:target="sendMessage" 
-                                    id="chat-input-field" 
-                                    autofocus
-                                    type="text" 
-                                    name="message" 
-                                    placeholder="{{ __('wirechat::chat.inputs.message.placeholder') }}" 
-                                    maxlength="1700" 
-                                    rows="1"
-                                    @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px';"
-                                    @keydown.shift.enter.prevent="insertNewLine($el)"
-                                    @keydown.enter.prevent=""
-                                    @keyup.enter.prevent="$event.shiftKey ? null : (((body && body?.trim().length > 0) || ($wire.media && $wire.media.length > 0)) ? $wire.sendMessage() : null)"
-                                    class="w-full disabled:cursor-progress resize-none h-auto max-h-20 sm:max-h-72 flex grow border-0 outline-0 focus:border-0 focus:ring-0 hover:ring-0 rounded-lg dark:text-white bg-none dark:bg-inherit focus:outline-hidden"
-                                    x-init="document.querySelector('emoji-picker')?.addEventListener('emoji-click', event => {
-                                        const emoji = event.detail['unicode'];
-                                        const inputField = $refs.body;
-                                        const startPos = inputField.selectionStart;
-                                        const endPos = inputField.selectionEnd;
-                                        const currentValue = inputField.value;
-                                        const newValue = currentValue.substring(0, startPos) + emoji + currentValue.substring(endPos);
-                                        inputField._x_model.set(newValue);
-                                        inputField.setSelectionRange(startPos + emoji.length, startPos + emoji.length);
-                                        inputField.style.height = 'auto';
-                                        inputField.style.height = inputField.scrollHeight + 'px';
-                                    })"></textarea>
-                        @endif
-                    </div>
+                            @else
+                                <!-- Default Individual Chat Input -->
+                                <textarea @focus-input-field.window="$el.focus()" 
+                                        autocomplete="off" 
+                                        x-model='body' 
+                                        x-ref="body"
+                                        wire:loading.delay.longest.attr="disabled" 
+                                        wire:target="sendMessage" 
+                                        id="chat-input-field" 
+                                        autofocus
+                                        type="text" 
+                                        name="message" 
+                                        placeholder="{{ __('wirechat::chat.inputs.message.placeholder') }}" 
+                                        maxlength="1700" 
+                                        rows="1"
+                                        @input="$el.style.height = 'auto'; $el.style.height = $el.scrollHeight + 'px';"
+                                        @keydown.shift.enter.prevent="insertNewLine($el)"
+                                        @keydown.enter.prevent=""
+                                        @keyup.enter.prevent="$event.shiftKey ? null : (((body && body?.trim().length > 0) || ($wire.media && $wire.media.length > 0)) ? $wire.sendMessage() : null)"
+                                        class="w-full disabled:cursor-progress resize-none h-auto max-h-20 sm:max-h-72 flex grow border-0 outline-0 focus:border-0 focus:ring-0 hover:ring-0 rounded-lg dark:text-white bg-none dark:bg-inherit focus:outline-hidden"
+                                        x-init="document.querySelector('emoji-picker')?.addEventListener('emoji-click', event => {
+                                            const emoji = event.detail['unicode'];
+                                            const inputField = $refs.body;
+                                            const startPos = inputField.selectionStart;
+                                            const endPos = inputField.selectionEnd;
+                                            const currentValue = inputField.value;
+                                            const newValue = currentValue.substring(0, startPos) + emoji + currentValue.substring(endPos);
+                                            inputField._x_model.set(newValue);
+                                            inputField.setSelectionRange(startPos + emoji.length, startPos + emoji.length);
+                                            inputField.style.height = 'auto';
+                                            inputField.style.height = inputField.scrollHeight + 'px';
+                                        })"></textarea>
+                            @endif
+                        </div>
 
 
                     {{-- --------------- --}}
@@ -517,31 +501,32 @@
 
 
                         {{-- send Like button --}}
-                        <button
-                            x-show="!((body?.trim()?.length>0) || $wire.media.length > 0 || $wire.files.length > 0 )"
-                            wire:loading.attr="disabled" wire:target="sendMessage" wire:click='sendLike()'
-                            type="button" class="group disabled:cursor-progress">
+                        
+                            <button
+                                x-show="!((body?.trim()?.length>0) || $wire.media.length > 0 || $wire.files.length > 0 )"
+                                wire:loading.attr="disabled" wire:target="sendMessage" wire:click='sendLike()'
+                                type="button" class="group disabled:cursor-progress">
 
-                            <!-- outlined heart -->
-                            <span class=" group-hover:hidden transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                    class="w-7 h-7 text-gray-600 dark:text-white/90 stroke-[1.4] dark:stroke-[1.4]">
-                                    <path stroke-linecap="round" stroke-linejoin="round"
-                                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                                </svg>
-                            </span>
-                            <!--  filled heart -->
-                            <span class="hidden group-hover:block transition " x-bounce>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                    class="size-6 w-7 h-7   text-red-500">
-                                    <path
-                                        d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
-                                </svg>
-                            </span>
+                                <!-- outlined heart -->
+                                <!-- <span class=" group-hover:hidden transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        class="w-7 h-7 text-gray-600 dark:text-white/90 stroke-[1.4] dark:stroke-[1.4]">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                                    </svg>
+                                </span> -->
+                                <!--  filled heart -->
+                                <span class="hidden group-hover:block transition " x-bounce>
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                        class="size-6 w-7 h-7   text-red-500">
+                                        <path
+                                            d="m11.645 20.91-.007-.003-.022-.012a15.247 15.247 0 0 1-.383-.218 25.18 25.18 0 0 1-4.244-3.17C4.688 15.36 2.25 12.174 2.25 8.25 2.25 5.322 4.714 3 7.688 3A5.5 5.5 0 0 1 12 5.052 5.5 5.5 0 0 1 16.313 3c2.973 0 5.437 2.322 5.437 5.25 0 3.925-2.438 7.111-4.739 9.256a25.175 25.175 0 0 1-4.244 3.17 15.247 15.247 0 0 1-.383.219l-.022.012-.007.004-.003.001a.752.752 0 0 1-.704 0l-.003-.001Z" />
+                                    </svg>
+                                </span>
 
-                        </button>
-
+                            </button>
+                        
 
                     </div>
 
@@ -550,8 +535,85 @@
 
 
 
+            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             @script
+
                 <script>
+
+                    $(document).ready(function() {
+                        // $('#extraFields').hide();
+                        $('#messageSelect').on('change', function() {
+                            if ($(this).val() !== '') {
+                                $('#extraFields').show();
+                            } 
+                        });
+                        $('#submitBtn').on('click', function() {
+                            $('#extraFields').hide();
+                        });
+                        // Dynamically get the value of the input fields when they change
+                        let message = '';
+                        let includeOption = '';
+                        let timeValue = '';
+                        let timeUnit = '';
+                        let reason = '';
+                        let hasCustomMessage = false; //  prevent repeated appending
+
+                        $('#messageSelect').on('change', function () {
+                            message = $(this).val();
+                            updateFinalMessage();
+                        });
+
+                        $('#includeOption').on('change', function () {
+                            includeOption = $(this).val();
+                            updateFinalMessage();
+                        });
+
+                        $('#timeValue').on('input', function () {
+                            timeValue = $(this).val();
+                            updateFinalMessage();
+                        });
+
+                        $('#timeUnit').on('change', function () {
+                            timeUnit = $(this).val();
+                            updateFinalMessage();
+                        });
+
+                        $('#reason').on('input', function () {
+                            reason = $(this).val();
+                            updateFinalMessage();
+                        });
+
+                        function updateFinalMessage() {
+                        if (hasCustomMessage) return;
+
+                        if (message && includeOption && timeValue && timeUnit) {
+                            let finalMessage = `${message} (${includeOption} ${timeValue} ${timeUnit})`;
+                            if (reason) {
+                                finalMessage += ` - Reason: ${reason}`;
+                            }
+
+                            console.log('Final Message:', finalMessage);
+
+                            if (!$('#messageSelect option[value="' + finalMessage + '"]').length) {
+                                $('#messageSelect').append(
+                                    $('<option>', {
+                                        value: finalMessage,
+                                        text: finalMessage
+                                    })
+                                );
+
+                                $('#messageSelect').val(finalMessage);
+                                // Update Alpine.js data
+                                Alpine.store('body', finalMessage);
+                            }
+                        }
+                    }
+
+
+                    });
+
+
+                                        
                     Alpine.data('attachments', (type = "media") => ({
                         // State variables
                         isDropping: false, // Tracks if a file is being dragged over the drop area
