@@ -7,11 +7,11 @@ Includes role-based access, email verification, and group chat permissions.
 
 ## 🚀 Features
 
-- ✅ User authentication (Laravel Breeze / Fortify)
+- ✅ User authentication (Laravel Breeze)
 - ✅ Email verification
 - ✅ One-on-one chat
 - ✅ Group chat
-- ✅ Role-based access (Admin, Agent, User)
+- ✅ Role-based access (Admin, User)
 - ✅ Chat & group creation permissions
 
 ---
@@ -20,8 +20,8 @@ Includes role-based access, email verification, and group chat permissions.
 
 - PHP >= 8.2
 - Laravel >= 12
-- MySQL / PostgreSQL / SQLite
-- livewire & npm (for frontend assets)
+- MySQL 
+- livewire & npm 
 - Composer
 
 ---
@@ -29,8 +29,8 @@ Includes role-based access, email verification, and group chat permissions.
 ## 🛠️ Installation
 
 ```bash
-git clone https://github.com/your-username/your-repo.git
-cd your-repo
+git clone https://github.com/Vishal386-code/project-attendance.git
+cd project-attendance
 
 composer install
 npm install && npm run dev
