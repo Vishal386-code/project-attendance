@@ -419,25 +419,16 @@
                                                 if (this.reason) {
                                                     msg += ` - Reason: ${this.reason}`;
                                                 }
-                                                $wire.set('body', msg);
+                                                $wire.set('body', msg); // 🟢 Livewire me send karo
                                             } else {
-                                                $wire.set('body', this.rawMessage);
+                                                $wire.set('body', this.rawMessage); // fallback
                                             }
-                                        },
-                                        resetFields() {
-                                            this.rawMessage = '';
-                                            this.includeOption = '';
-                                            this.timeValue = '';
-                                            this.timeUnit = '';
-                                            this.reason = '';
-                                            $wire.set('body', '');
                                         }
                                     }"
                                     @input.debounce.300ms="updateFinalMessage()"
                                     @change="updateFinalMessage()"
                                 >
-
-                                    <!-- Select Message -->
+                                    <!-- Message select -->
                                     <select x-model="rawMessage"
                                             class="w-full cursor-pointer mb-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                         <option value="">Select a message</option>
@@ -446,7 +437,7 @@
                                         <option value="Good Evening Sir">Good Evening Sir</option>
                                     </select>
 
-                                    <!-- Conditional Extra Fields -->
+                                    <!-- Extra fields -->
                                     <div class="flex flex-col gap-2" x-show="rawMessage">
                                         <div class="flex gap-2">
                                             <div class="flex w-full items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
@@ -472,20 +463,7 @@
                                         <input type="text" x-model="reason" placeholder="Reason"
                                             class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
                                     </div>
-
-                                    <!-- Submit Button -->
-                                    <button type="button"
-                                            @click="
-                                                updateFinalMessage();
-                                                $nextTick(() => resetFields());
-                                            "
-                                            wire:click="sendMessage"
-                                            class="mt-3 w-fit px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
-                                        Send Message
-                                    </button>
-
                                 </div>
-
 
                             @else
                                 <!-- Default Individual Chat Input -->
