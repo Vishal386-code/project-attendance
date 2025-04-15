@@ -406,40 +406,87 @@
                         <div @class(['flex gap-2 sm:px-2 w-full'])>
                             @if($group?->schema === "techno")
                                 <!-- Group Chat Custom Input -->
-                                <div class="flex flex-col w-full" x-data="{ showExtra: false, body: '' }">
-                                    <select x-model="body" id="messageSelect"
-                                            class="w-full cursor-pointer mb-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
-                                            @change="showExtra = ($event.target.value !== '')"
-                                            wire:model="body"> <!-- Add wire:model here -->
+                                <div class="flex flex-col w-full"
+                                    x-data="{
+                                        rawMessage: '',
+                                        includeOption: '',
+                                        timeValue: '',
+                                        timeUnit: '',
+                                        reason: '',
+                                        updateFinalMessage() {
+                                            if (this.rawMessage && this.includeOption && this.timeValue && this.timeUnit) {
+                                                let msg = `${this.rawMessage} (${this.includeOption} ${this.timeValue} ${this.timeUnit})`;
+                                                if (this.reason) {
+                                                    msg += ` - Reason: ${this.reason}`;
+                                                }
+                                                $wire.set('body', msg);
+                                            } else {
+                                                $wire.set('body', this.rawMessage);
+                                            }
+                                        },
+                                        resetFields() {
+                                            this.rawMessage = '';
+                                            this.includeOption = '';
+                                            this.timeValue = '';
+                                            this.timeUnit = '';
+                                            this.reason = '';
+                                            $wire.set('body', '');
+                                        }
+                                    }"
+                                    @input.debounce.300ms="updateFinalMessage()"
+                                    @change="updateFinalMessage()"
+                                >
+
+                                    <!-- Select Message -->
+                                    <select x-model="rawMessage"
+                                            class="w-full cursor-pointer mb-2 rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
                                         <option value="">Select a message</option>
                                         <option value="Good Morning Sir">Good Morning Sir</option>
                                         <option value="Good Afternoon Sir">Good Afternoon Sir</option>
                                         <option value="Good Evening Sir">Good Evening Sir</option>
                                     </select>
 
-                                    <div x-show="showExtra" id="extraFields" class="flex flex-col gap-2">
+                                    <!-- Conditional Extra Fields -->
+                                    <div class="flex flex-col gap-2" x-show="rawMessage">
                                         <div class="flex gap-2">
-                                            <div class='flex w-full items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white'>
-                                                <select wire:model="includeOption" id="includeOption"
+                                            <div class="flex w-full items-stretch rounded-lg overflow-hidden border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+                                                <select x-model="includeOption"
                                                         class="flex-1 cursor-pointer border-0 border-r border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                                    <option>Select in/less</option>
+                                                    <option value="">Select in/less</option>
                                                     <option value="in">Include</option>
                                                     <option value="less">Less</option>
                                                 </select>
-                                                <input type="number" id="timeValue" placeholder="Minutes/Hours" class='border-0 bg-transparent w-full h-full outline-none'>
-                                                <select wire:model="timeUnit" id="timeUnit" <!-- Fix wire:model here -->
+
+                                                <input type="number" x-model="timeValue" placeholder="Minutes/Hours"
+                                                    class="border-0 bg-transparent w-full h-full outline-none" />
+
+                                                <select x-model="timeUnit"
                                                         class="flex-1 cursor-pointer border-0 border-l border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
-                                                    <option>Select min/hours</option>
+                                                    <option value="">Select min/hours</option>
                                                     <option value="min">Minute</option>
                                                     <option value="hours">Hours</option>
                                                 </select>
                                             </div>
                                         </div>
-                                        <input type="text" wire:model="reason" 
-                                            placeholder="Reason" id="reason"
-                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white">
+
+                                        <input type="text" x-model="reason" placeholder="Reason"
+                                            class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white" />
                                     </div>
+
+                                    <!-- Submit Button -->
+                                    <button type="button"
+                                            @click="
+                                                updateFinalMessage();
+                                                $nextTick(() => resetFields());
+                                            "
+                                            wire:click="sendMessage"
+                                            class="mt-3 w-fit px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
+                                        Send Message
+                                    </button>
+
                                 </div>
+
+
                             @else
                                 <!-- Default Individual Chat Input -->
                                 <textarea @focus-input-field.window="$el.focus()" 
@@ -534,85 +581,9 @@
             </section>
 
 
-
-            <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
             @script
 
                 <script>
-
-                    $(document).ready(function() {
-                        // $('#extraFields').hide();
-                        $('#messageSelect').on('change', function() {
-                            if ($(this).val() !== '') {
-                                $('#extraFields').show();
-                            } 
-                        });
-                        $('#submitBtn').on('click', function() {
-                            $('#extraFields').hide();
-                        });
-                        // Dynamically get the value of the input fields when they change
-                        let message = '';
-                        let includeOption = '';
-                        let timeValue = '';
-                        let timeUnit = '';
-                        let reason = '';
-                        let hasCustomMessage = false; //  prevent repeated appending
-
-                        $('#messageSelect').on('change', function () {
-                            message = $(this).val();
-                            updateFinalMessage();
-                        });
-
-                        $('#includeOption').on('change', function () {
-                            includeOption = $(this).val();
-                            updateFinalMessage();
-                        });
-
-                        $('#timeValue').on('input', function () {
-                            timeValue = $(this).val();
-                            updateFinalMessage();
-                        });
-
-                        $('#timeUnit').on('change', function () {
-                            timeUnit = $(this).val();
-                            updateFinalMessage();
-                        });
-
-                        $('#reason').on('input', function () {
-                            reason = $(this).val();
-                            updateFinalMessage();
-                        });
-
-                        function updateFinalMessage() {
-                        if (hasCustomMessage) return;
-
-                        if (message && includeOption && timeValue && timeUnit) {
-                            let finalMessage = `${message} (${includeOption} ${timeValue} ${timeUnit})`;
-                            if (reason) {
-                                finalMessage += ` - Reason: ${reason}`;
-                            }
-
-                            console.log('Final Message:', finalMessage);
-
-                            if (!$('#messageSelect option[value="' + finalMessage + '"]').length) {
-                                $('#messageSelect').append(
-                                    $('<option>', {
-                                        value: finalMessage,
-                                        text: finalMessage
-                                    })
-                                );
-
-                                $('#messageSelect').val(finalMessage);
-                                // Update Alpine.js data
-                                Alpine.store('body', finalMessage);
-                            }
-                        }
-                    }
-
-
-                    });
-
-
                                         
                     Alpine.data('attachments', (type = "media") => ({
                         // State variables
