@@ -419,7 +419,7 @@
                                                 if (this.reason) {
                                                     msg += ` - Reason: ${this.reason}`;
                                                 }
-                                                $wire.set('body', msg); // 🟢 Livewire me send karo
+                                                $wire.set('body', msg); 
                                             } else {
                                                 $wire.set('body', this.rawMessage); // fallback
                                             }
