@@ -18,9 +18,9 @@
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
             <livewire:layout.navigation />
         @if(auth()->user()->role === 'superadmin')
-            <div class="flex min-h-screen bg-gray-100">
+            <div class="flex gap-x-5 h-full min-h-screen bg-gray-100">
                 <livewire:superadmin.sidebar/>
-                <main>
+                <main class='w-full py-5'>
                     {{ $slot }}
                 </main>
             </div>
