@@ -23,6 +23,7 @@ return new class extends Migration
             $table->date('dob')->nullable()->after('father_name');
             $table->text('address')->nullable()->after('dob');
             $table->string('contact_number')->nullable()->after('address');
+            $table->string('user_email')->nullable()->after('contact_number');
             $table->date('on_role_date')->nullable()->after('contact_number');
         });
     }
@@ -45,6 +46,7 @@ return new class extends Migration
                 'dob',
                 'address',
                 'contact_number',
+                'user_email',
                 'on_role_date',
             ]);
         });

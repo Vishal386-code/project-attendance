@@ -16,22 +16,28 @@
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900">
-            <livewire:layout.navigation />
+            
         @if(auth()->user()->role === 'superadmin')
-            <div class="flex gap-x-5 h-full min-h-screen bg-gray-100">
+            <div class="flex h-full min-h-screen bg-gray-100">
                 <livewire:superadmin.sidebar/>
-                <main class='w-full py-5'>
+                <main class='w-full pb-5'>
+                <livewire:layout.navigation />
+                <div class='mt-8 px-5'>
+
                     {{ $slot }}
+                </div>
                 </main>
             </div>
         @elseif(auth()->user()->role === 'admin')
-            <div class="flex min-h-screen bg-gray-100">
+            <div class="flex h-full min-h-screen bg-gray-100">
                 <livewire:admin.sidebar/>
                 <main>
+                <livewire:layout.navigation />
                     {{ $slot }}
                 </main>
             </div>
         @else
+        <livewire:layout.navigation />
             
         @endif
 

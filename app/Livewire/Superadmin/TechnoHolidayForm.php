@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Livewire\Superadmin;
 
 use Livewire\Component;
 use App\Models\TechnoHoliday;
@@ -96,6 +96,6 @@ class TechnoHolidayForm extends Component
 
     public function render()
     {
-        return view('livewire.techno-holiday-form')->layout('layouts.app');
+        return view('livewire.superadmin.techno-holiday-form')->layout('layouts.app');
     }
 }

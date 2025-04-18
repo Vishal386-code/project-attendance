@@ -1,4 +1,4 @@
-<div class="max-w-xl mx-auto p-4">
+<div class="w-full mx-auto p-4">
     <!-- Form Section -->
     <form wire:submit.prevent="{{ $editId ? 'update' : 'save' }}" class="space-y-4">
         @if($editId)

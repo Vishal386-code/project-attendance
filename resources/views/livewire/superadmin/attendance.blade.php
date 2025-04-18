@@ -12,6 +12,15 @@
             <input type="number" wire:model="year"
                    class="mt-1 block w-24 border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
+        
+        <!-- <div>
+            <label class="block text-sm font-medium text-gray-700">Filter by Role</label>
+            <select wire:model="roleFilter" class="mt-1 block border-gray-300 rounded shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="">All Roles</option>
+            </select>
+        </div> -->
        
         <div>
             <button wire:click="submit"
@@ -43,19 +52,49 @@
                         @php
                             $status = $row['status_' . $user->id];
                             $extra = $row['extra_' . $user->id] ?? '';
+                            $minutes = $row['min_' . $user->id] ?? 0;
+                            
+                            // Calculate hours and minutes from total minutes
+                            $hours = floor($minutes / 60);
+                            $mins = $minutes % 60;
+                            $timeDisplay = $hours > 0 ? "{$hours}h {$mins}m" : "{$mins}m";
+                            
                             $color = match($status) {
                                 'HD' => 'bg-yellow-200 text-yellow-900 font-semibold',
                                 'SL' => 'bg-orange-200 text-orange-900 font-semibold',
                                 'Leave' => 'bg-red-300 text-white font-semibold',
                                 'PL' => 'bg-green-200 text-green-900 font-semibold',
                                 'Present' => 'bg-green-100 text-green-800 font-semibold',
+                                'Holiday' => 'bg-purple-100 text-purple-800 font-semibold',
                                 default => ''
                             };
+                            
+                            // Only show hover effect if minutes > 0
+                            $showHoverEffect = $minutes > 0;
                         @endphp
-                        <td class="border px-3 py-2 {{ $color }}">
-                            <div>{{ $status }}</div>
+                        <td class="border px-3 py-2 {{ $color }} @if($showHoverEffect) group relative @endif">
+                            @if($showHoverEffect)
+                                <!-- Status with hover effect showing working time -->
+                                <div class="overflow-hidden h-5 relative">
+                                    <div class="transition-all duration-300 ease-in-out @if($showHoverEffect) group-hover:opacity-0 @endif">
+                                        {{ $status }}
+                                    </div>
+                                    <div class="absolute inset-0 flex items-center justify-center opacity-0 @if($showHoverEffect) group-hover:opacity-100 @endif transition-all duration-300">
+                                        {{ $timeDisplay }}
+                                    </div>
+                                </div>
+                            @else
+                                <!-- Status without hover effect -->
+                                <div class="h-5 flex items-center justify-center">
+                                    {{ $status }}
+                                </div>
+                            @endif
+
+                            <!-- Extra info (if any) -->
                             @if($extra)
-                                <div class="text-xs font-medium text-blue-700 mt-1">{{ $extra }}</div>
+                                <div class="text-xs font-medium text-blue-700 mt-1">
+                                    {{ $extra }}
+                                </div>
                             @endif
                         </td>
                     @endforeach
@@ -63,11 +102,5 @@
             @endforeach
             </tbody>
         </table>
-    </div>
-
-    <div class="mt-6 bg-white p-4 rounded shadow border max-w-md">
-        <h3 class="text-lg font-semibold mb-2 text-gray-800">Working Hours</h3>
-        <p class="text-gray-700">Total Worked: <strong>{{ $workedHours }} hours {{ $workedMins }} minutes</strong></p>
-        <p class="text-gray-700 mt-4 font-semibold">Total Extra Hours Across All Users: <strong>{{ $totalExtraHours }} hours {{ $totalExtraMins }} minutes</strong></p>
     </div>
 </div>

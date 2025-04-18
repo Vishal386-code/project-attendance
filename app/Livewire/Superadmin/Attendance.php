@@ -88,7 +88,7 @@ class Attendance extends Component
 
     public function render()
     {
-        $users = User::all();
+        $users = User::all()->where('role','user');
         $start = Carbon::create($this->year, $this->month, 1);
         $end = $start->copy()->endOfMonth();
         $today = now()->format('Y-m-d');
